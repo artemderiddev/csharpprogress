@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Domain;
+﻿using ConsolePlayground;
 
 var cts = new CancellationTokenSource();
 var backgroundCts = new CancellationTokenSource();
@@ -12,6 +11,7 @@ Console.WriteLine("Starting application...");
 Console.WriteLine($"Temp file is {path} ");
 
 Task keyboardListenerTask = KeyboardListener(backgroundCts.Token, new Progress<ConsoleKey>(CancelOnCKeyPressed));;
+Task spinner = new ProgressSpinner().Run(backgroundCts.Token, new Progress<char>(c => Console.Write($"\r{c} "))); 
 
 try
 {
@@ -27,6 +27,7 @@ finally
 {
     backgroundCts.Cancel();
     await keyboardListenerTask;
+    await spinner;
     
     File.Delete(path);
     Console.WriteLine("File deleted");

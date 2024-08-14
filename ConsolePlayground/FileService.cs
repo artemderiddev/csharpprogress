@@ -1,4 +1,4 @@
-﻿namespace Domain;
+﻿namespace ConsolePlayground;
 
 public class FileService
 {
