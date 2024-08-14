@@ -30,9 +30,9 @@ finally
 
 async Task CancelOnButtonPress(CancellationTokenSource cancellationTokenSource, ConsoleKey key)
 {
-    while (true)
+    var periodicTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+    while (await periodicTimer.WaitForNextTickAsync(cancellationTokenSource.Token))
     {
         if(Console.KeyAvailable && Console.ReadKey(true).Key == key) cancellationTokenSource.Cancel();
-        else await Task.Delay(50);
     }
 }
