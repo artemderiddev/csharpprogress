@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsolePlayground", "ConsolePlayground\ConsolePlayground.csproj", "{5C8943F9-4AC7-44C3-AA5E-38CAEEF3DA63}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileServiceBenchmarksRunner", "FileServiceBenchmarksRunner\FileServiceBenchmarksRunner.csproj", "{52D49474-5A2A-4E15-8D69-D530EE5E24F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{5C8943F9-4AC7-44C3-AA5E-38CAEEF3DA63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5C8943F9-4AC7-44C3-AA5E-38CAEEF3DA63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5C8943F9-4AC7-44C3-AA5E-38CAEEF3DA63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52D49474-5A2A-4E15-8D69-D530EE5E24F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52D49474-5A2A-4E15-8D69-D530EE5E24F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52D49474-5A2A-4E15-8D69-D530EE5E24F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52D49474-5A2A-4E15-8D69-D530EE5E24F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

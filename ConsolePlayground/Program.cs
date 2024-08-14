@@ -5,18 +5,17 @@ var backgroundCts = new CancellationTokenSource();
 
 var path = Path.GetTempFileName();
 var appStatus = string.Empty;
-var sizeInMb = 200;
+var sizeInMb = 100;
 
 Console.WriteLine("Starting application...");
 Console.WriteLine($"Temp file is {path} ");
 
 Task keyboardListenerTask = KeyboardListener(backgroundCts.Token, new Progress<ConsoleKey>(CancelOnCKeyPressed));;
-Task spinner = new ProgressSpinner().Run(backgroundCts.Token, new Progress<char>(EmptySpinner)); 
+Task spinner = new ProgressSpinner().Run(backgroundCts.Token, new Progress<char>(EmptySpinner));
 
 try
 {
-    FileService fileService = new();
-    await fileService.GenerateTextFile(cts.Token, new Progress<int>(DisplayPercentage), path, sizeInMb); // known bug here, text generating task spamming main thread with events with buffer size of 128, same with bigger 1024 but not that critical
+    await new FileService().GenerateTextFile(cts.Token, new Progress<int>(DisplayPercentage), path, sizeInMb); // known bug here, text generating task spamming main thread with events with buffer size of 128, same with bigger 1024 but not that critical
     appStatus = "Success";
 }
 catch (OperationCanceledException)
@@ -30,7 +29,7 @@ finally
     await spinner;
     
     File.Delete(path);
-    Console.WriteLine("File deleted");
+    Console.WriteLine("\nFile deleted");
     Console.WriteLine(appStatus);
 }
 
