@@ -1,6 +1,8 @@
-﻿using Domain;
+﻿using System.Diagnostics;
+using Domain;
 
 var cts = new CancellationTokenSource();
+var backgroundCts = new CancellationTokenSource();
 
 var path = Path.GetTempFileName();
 var appStatus = string.Empty;
@@ -9,7 +11,7 @@ var sizeInMb = 200;
 Console.WriteLine("Starting application...");
 Console.WriteLine($"Temp file is {path} ");
 
-Task keyPressTask = CancelOnButtonPress(cts, ConsoleKey.C);
+Task keyboardListenerTask = KeyboardListener(backgroundCts.Token, new Progress<ConsoleKey>(CancelOnCKeyPressed));;
 
 try
 {
@@ -23,16 +25,25 @@ catch (OperationCanceledException)
 }
 finally
 {
+    backgroundCts.Cancel();
+    await keyboardListenerTask;
+    
     File.Delete(path);
     Console.WriteLine("File deleted");
     Console.WriteLine(appStatus);
 }
 
-async Task CancelOnButtonPress(CancellationTokenSource cancellationTokenSource, ConsoleKey key)
+void CancelOnCKeyPressed(ConsoleKey keyPressed)
 {
-    var periodicTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
-    while (await periodicTimer.WaitForNextTickAsync(cancellationTokenSource.Token))
+    if(keyPressed == ConsoleKey.C) cts.Cancel();
+}
+
+async Task KeyboardListener(CancellationToken cancellationToken, IProgress<ConsoleKey> progress)
+{
+    using var periodicTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+    while (!cancellationToken.IsCancellationRequested &&
+           await periodicTimer.WaitForNextTickAsync())
     {
-        if(Console.KeyAvailable && Console.ReadKey(true).Key == key) cancellationTokenSource.Cancel();
+        if (Console.KeyAvailable) progress.Report(Console.ReadKey(intercept: true).Key);
     }
 }
