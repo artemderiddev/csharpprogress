@@ -11,12 +11,12 @@ Console.WriteLine("Starting application...");
 Console.WriteLine($"Temp file is {path} ");
 
 Task keyboardListenerTask = KeyboardListener(backgroundCts.Token, new Progress<ConsoleKey>(CancelOnCKeyPressed));;
-Task spinner = new ProgressSpinner().Run(backgroundCts.Token, new Progress<char>(c => Console.Write($"\r{c} "))); 
+Task spinner = new ProgressSpinner().Run(backgroundCts.Token, new Progress<char>(EmptySpinner)); 
 
 try
 {
     FileService fileService = new();
-    await fileService.GenerateTextFile(cts.Token, path, sizeInMb);
+    await fileService.GenerateTextFile(cts.Token, new Progress<int>(DisplayPercentage), path, sizeInMb); // known bug here, text generating task spamming main thread with events with buffer size of 128, same with bigger 1024 but not that critical
     appStatus = "Success";
 }
 catch (OperationCanceledException)
@@ -34,6 +34,10 @@ finally
     Console.WriteLine(appStatus);
 }
 
+void DisplayPercentage(int percent) => Console.Write($"\r{percent}%");
+
+void EmptySpinner(char c) { }
+
 void CancelOnCKeyPressed(ConsoleKey keyPressed)
 {
     if(keyPressed == ConsoleKey.C) cts.Cancel();
@@ -43,7 +47,7 @@ async Task KeyboardListener(CancellationToken cancellationToken, IProgress<Conso
 {
     using var periodicTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
     while (!cancellationToken.IsCancellationRequested &&
-           await periodicTimer.WaitForNextTickAsync())
+           await periodicTimer.WaitForNextTickAsync(CancellationToken.None))
     {
         if (Console.KeyAvailable) progress.Report(Console.ReadKey(intercept: true).Key);
     }
