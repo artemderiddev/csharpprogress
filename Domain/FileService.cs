@@ -10,12 +10,12 @@ public class FileService
         {
             await using var writer = new StreamWriter(path);
 
-            var buffer = new char[128];
+            var buffer = new char[1024];
             var bufferCount = lengthMb * 1024 * 1024 / buffer.Length;
 
             for (int i = 0; i < bufferCount; i++)
             {
-                FillRandomText(buffer);
+                FillRandomTextToBuffer(buffer); // AsSpan() is not necessary since span has implicit conversion operator
                 await writer.WriteAsync(buffer, token);
             }
         }
@@ -26,5 +26,5 @@ public class FileService
         }
     }
 
-    private void FillRandomText(Span<char> buffer) => Random.Shared.GetItems(Alphabet.AsSpan(), buffer);
+    private void FillRandomTextToBuffer(Span<char> buffer) => Random.Shared.GetItems(Alphabet.AsSpan(), buffer);
 }
