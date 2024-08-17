@@ -1,21 +1,28 @@
 ﻿using ConsolePlayground;
+using Microsoft.Extensions.Logging;
 
 var cts = new CancellationTokenSource();
 var backgroundCts = new CancellationTokenSource();
 
 var path = Path.GetTempFileName();
 var appStatus = string.Empty;
-var sizeInMb = 100;
+const int sizeInMb = 2000;
 
 Console.WriteLine("Starting application...");
 Console.WriteLine($"Temp file is {path} ");
 
 Task keyboardListenerTask = KeyboardListener(backgroundCts.Token, new Progress<ConsoleKey>(CancelOnCKeyPressed));;
-Task spinner = new ProgressSpinner().Run(backgroundCts.Token, new Progress<char>(EmptySpinner));
+
+var factory = LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Warning));
+var progressBarLogger = factory.CreateLogger<ProgressBarWithSpinner>();
+var fileServiceLogger = factory.CreateLogger<FileService>();
+
+int percentage = 0;
+Task progressSpinner = new ProgressBarWithSpinner(progressBarLogger).RunAsync(new Progress<string>(DisplayProgressSpinner), () => percentage, backgroundCts.Token);
 
 try
 {
-    await new FileService().GenerateTextFile(cts.Token, new Progress<int>(DisplayPercentage), path, sizeInMb); // known bug here, text generating task spamming main thread with events with buffer size of 128, same with bigger 1024 but not that critical
+    await new FileService(fileServiceLogger).GenerateTextFile(cts.Token, new Progress<int>(value => percentage = value), path, sizeInMb); // known bug here, text generating task spamming main thread with events with buffer size of 128, same with bigger 1024 but not that critical
     appStatus = "Success";
 }
 catch (OperationCanceledException)
@@ -26,16 +33,22 @@ finally
 {
     backgroundCts.Cancel();
     await keyboardListenerTask;
-    await spinner;
+    await progressSpinner;
     
     File.Delete(path);
-    Console.WriteLine("\nFile deleted");
+    Console.WriteLine();
+    Console.WriteLine("File deleted");
     Console.WriteLine(appStatus);
 }
 
-void DisplayPercentage(int percent) => Console.Write($"\r{percent}%");
+return;
 
-void EmptySpinner(char c) { }
+// TODO: move this to static method to progress bar class itself, at least give opportunity to register handler
+void DisplayProgressSpinner(string state)
+{
+    var returns = string.Join(string.Empty, Enumerable.Range(0, state.Length).Select(x => "\r")); 
+    Console.Write($"{returns}{state}");
+}
 
 void CancelOnCKeyPressed(ConsoleKey keyPressed)
 {

@@ -17,7 +17,7 @@ public class FileService(ILogger<FileService>? logger = default)
 
     public async Task GenerateTextFile(CancellationToken token, IProgress<int> progress, string path, int lengthMb)
     {
-        await GenerateTextFile(token, progress, path, lengthMb, 1024);
+        await GenerateTextFile(token, progress, path, lengthMb, 100);
     }
 
     public async Task GenerateTextFile(CancellationToken token, IProgress<int> progress, string path, int lengthMb, int bufferSize)
@@ -35,8 +35,7 @@ public class FileService(ILogger<FileService>? logger = default)
 
             for (var i = 0; i < totalOperations; i++)
             {
-                FillRandomTextToBuffer(
-                    buffer); // AsSpan() is not necessary since span has implicit conversion operator
+                FillRandomTextToBuffer(buffer); // AsSpan() is not necessary since span has implicit conversion operator
                 await writer.WriteAsync(buffer, token);
                 _progressStatus = SmoothProgressPercentCalculation(i, totalOperations);
             }

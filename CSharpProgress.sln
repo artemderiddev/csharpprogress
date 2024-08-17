@@ -4,6 +4,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsolePlayground", "Consol
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileServiceBenchmarksRunner", "FileServiceBenchmarksRunner\FileServiceBenchmarksRunner.csproj", "{52D49474-5A2A-4E15-8D69-D530EE5E24F4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ProjectFiles", "ProjectFiles", "{5159BA50-480D-420C-B6D4-717EABACAC8F}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
