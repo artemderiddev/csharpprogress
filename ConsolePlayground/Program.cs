@@ -31,10 +31,16 @@ catch (OperationCanceledException)
 }
 finally
 {
-    backgroundCts.Cancel();
-    await keyboardListenerTask;
-    await progressSpinner;
-    
+    try
+    {
+        backgroundCts.Cancel();
+        await keyboardListenerTask;
+        await progressSpinner;
+    }
+    catch (OperationCanceledException)
+    {
+        
+    }
     File.Delete(path);
     Console.WriteLine();
     Console.WriteLine("File deleted");
