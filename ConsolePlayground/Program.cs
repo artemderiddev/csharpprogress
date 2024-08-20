@@ -18,10 +18,10 @@ var progressBarLogger = factory.CreateLogger<ProgressBarWithSpinner>();
 var fileServiceLogger = factory.CreateLogger<FileService>();
 
 int percentage = 0;
-Task progressSpinner = new ProgressBarWithSpinner(progressBarLogger).RunAsync(new Progress<string>(DisplayProgressSpinner), () => percentage, backgroundCts.Token);
-
+Task progressSpinner = default!;
 try
 {
+    progressSpinner = new ProgressBarWithSpinner(progressBarLogger).RunAsync(new Progress<string>(DisplayProgressSpinner), () => percentage, backgroundCts.Token);
     await new FileService(fileServiceLogger).GenerateTextFile(cts.Token, new Progress<int>(value => percentage = value), path, sizeInMb); // known bug here, text generating task spamming main thread with events with buffer size of 128, same with bigger 1024 but not that critical
     appStatus = "Success";
 }
@@ -57,7 +57,7 @@ void CancelOnCKeyPressed(ConsoleKey keyPressed)
 
 async Task KeyboardListener(CancellationToken cancellationToken, IProgress<ConsoleKey> progress)
 {
-    using var periodicTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+    using var periodicTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
     while (!cancellationToken.IsCancellationRequested &&
            await periodicTimer.WaitForNextTickAsync(CancellationToken.None))
     {
