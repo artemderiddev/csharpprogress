@@ -6,16 +6,15 @@ var backgroundCts = new CancellationTokenSource();
 
 var path = Path.GetTempFileName();
 var appStatus = string.Empty;
-const int sizeInMb = 2000;
+const int sizeInMb = 1000;
 
 Console.WriteLine("Starting application...");
 Console.WriteLine($"Temp file is {path} ");
 
 Task keyboardListenerTask = KeyboardListener(backgroundCts.Token, new Progress<ConsoleKey>(CancelOnCKeyPressed));;
 
-var factory = LoggerFactory.Create(x => x.AddConsole().SetMinimumLevel(LogLevel.Warning));
-var progressBarLogger = factory.CreateLogger<ProgressBarWithSpinner>();
-var fileServiceLogger = factory.CreateLogger<FileService>();
+var progressBarLogger = LoggerServiceLocator.CreateLogger<ProgressBarWithSpinner>();
+var fileServiceLogger = LoggerServiceLocator.CreateLogger<FileService>();
 
 int percentage = 0;
 Task progressSpinner = default!;
@@ -49,7 +48,6 @@ finally
 
 return;
 
-// TODO: move this to static method to progress bar class itself, at least give opportunity to register handler
 void DisplayProgressSpinner(string state)
 {
     var returns = string.Join(string.Empty, Enumerable.Range(0, state.Length).Select(x => "\r")); 

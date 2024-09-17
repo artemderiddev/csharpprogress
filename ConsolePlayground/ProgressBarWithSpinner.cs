@@ -9,8 +9,6 @@ public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = de
     private readonly ILogger<ProgressBarWithSpinner> _logger = logger ?? NullLogger<ProgressBarWithSpinner>.Instance;
     private readonly TimeSpan _updateTimeSpan = updateTimeSpan ?? TimeSpan.FromMilliseconds(200);
     
-    private static readonly ImmutableArray<char> PossibleSpinnerStates = ['|', '/', '─', '\\'];
-
     private const char Filled = '█';
     private const char Empty = ' ';
 
@@ -20,24 +18,23 @@ public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = de
     
     public async Task RunAsync(IProgress<string> progress, Func<int> getPercent, CancellationToken cancellationToken = default)
     {
-        _logger.LogTrace("Starting progress bar with spinner");
-        // using var progressBarCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        // cancellationToken.Register(() => cts.Cancel());
-        
-        using var timer = new PeriodicTimer(_updateTimeSpan);
-        
         try
         {
-            // TODO: debug and see where you missed to catch cancellation exception part 1
-            var spinTask = RunSpinner(new Progress<char>(currentSpinnerValue => _progressValues[_currentStep] = currentSpinnerValue), cancellationToken);
-            
-            // TODO: debug and see where you missed to catch cancellation exception part 2
+            _logger.LogTrace("Starting progress bar with spinner");
+
+            using var timer = new PeriodicTimer(_updateTimeSpan);
+            var spinner = new ProgressSpinner(_updateTimeSpan);
+
+            _logger.LogTrace("Starting spinner task");
+            var spinnerTask = spinner.RunSpinner(new Progress<char>(currentSpinnerValue => _progressValues[_currentStep] = currentSpinnerValue), cancellationToken);
+
+            // TODO: debug and see where you missed to catch cancellation exception
             while (await timer.WaitForNextTickAsync(cancellationToken))
             {
                 _logger.LogTrace("Updating progress bar");
                 var currentPercentage = getPercent();
+
                 _logger.LogTrace("Current percentage: {Percentage}", currentPercentage);
-                // if(currentPercentage == 0) continue;
                 
                 var currentIndex = currentPercentage * maxSteps / 100;
                 _logger.LogTrace("Current index: {CurrentIndex}", currentIndex);
@@ -57,7 +54,7 @@ public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = de
             }
 
             _logger.LogTrace("Finished progress bar");
-            await spinTask;
+            await spinnerTask;
         }
         catch (OperationCanceledException canceledException)
         {
@@ -68,39 +65,6 @@ public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = de
         {
             _logger.LogError(ex, "Unhandled exception inside Progress Bar With Spinner");
             throw;
-        }
-    }
-
-    // TODO: move updated logic to Spinner class, you can just utilize it inside task that you will control
-    private async Task RunSpinner(IProgress<char> spinnerState, CancellationToken cancellationToken = default)
-    {
-        using var spinnerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        using var spinnerTimer = new PeriodicTimer(_updateTimeSpan);
-        try
-        {
-            var (currentSpinnerIndex, currentSpinnerSymbol) = (0, PossibleSpinnerStates[0]);
-            spinnerState.Report(currentSpinnerSymbol);
-
-            while (await spinnerTimer.WaitForNextTickAsync(spinnerCts.Token))
-            {
-                currentSpinnerIndex = currentSpinnerIndex switch
-                {
-                    _ when currentSpinnerIndex + 1 == PossibleSpinnerStates.Length => 0,
-                    _ => currentSpinnerIndex + 1
-                };
-                currentSpinnerSymbol = PossibleSpinnerStates[currentSpinnerIndex];
-                spinnerState.Report(currentSpinnerSymbol);
-            }
-
-        }
-        catch (OperationCanceledException canceledException)
-        {
-            _logger.LogError(canceledException, "Operation cancelled");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unhandled exception inside ProgressSpinner");
         }
     }
 }
