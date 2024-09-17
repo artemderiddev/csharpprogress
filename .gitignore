@@ -8,3 +8,4 @@ riderModule.iml
 *.sln.DotSettings.user
 .vs/
 *.DotSettings.user
+*.DotSettings
