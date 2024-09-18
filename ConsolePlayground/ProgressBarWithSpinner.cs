@@ -1,12 +1,11 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ConsolePlayground;
 
-public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = default, int maxSteps = 10, TimeSpan? updateTimeSpan = default)
+public class ProgressBarWithSpinner(int progressBarLength = 10, TimeSpan? updateTimeSpan = default)
 {
-    private readonly ILogger<ProgressBarWithSpinner> _logger = logger ?? NullLogger<ProgressBarWithSpinner>.Instance;
+    private readonly ILogger<ProgressBarWithSpinner> _logger = LoggerServiceLocator.CreateLogger<ProgressBarWithSpinner>() ?? NullLogger<ProgressBarWithSpinner>.Instance;
     private readonly TimeSpan _updateTimeSpan = updateTimeSpan ?? TimeSpan.FromMilliseconds(200);
     
     private const char Filled = '█';
@@ -14,7 +13,7 @@ public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = de
 
     private volatile int _currentStep;
     
-    private readonly char[] _progressValues = Enumerable.Range(0, maxSteps).Select(_ => Empty).ToArray();
+    private readonly char[] _progressValues = Enumerable.Range(0, progressBarLength).Select(_ => Empty).ToArray();
     
     public async Task RunAsync(IProgress<string> progress, Func<int> getPercent, CancellationToken cancellationToken = default)
     {
@@ -28,17 +27,15 @@ public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = de
             _logger.LogTrace("Starting spinner task");
             var spinnerTask = spinner.RunSpinner(new Progress<char>(currentSpinnerValue => _progressValues[_currentStep] = currentSpinnerValue), cancellationToken);
 
-            // TODO: debug and see where you missed to catch cancellation exception
             while (await timer.WaitForNextTickAsync(cancellationToken))
             {
                 _logger.LogTrace("Updating progress bar");
                 var currentPercentage = getPercent();
 
                 _logger.LogTrace("Current percentage: {Percentage}", currentPercentage);
-                
-                var currentIndex = currentPercentage * maxSteps / 100;
+                var currentIndex = currentPercentage * progressBarLength / 100;
+
                 _logger.LogTrace("Current index: {CurrentIndex}", currentIndex);
-                
                 var progressString = string.Join("", _progressValues);
                 
                 _logger.LogTrace("Progress: {ProgressString}", progressString);
@@ -54,16 +51,15 @@ public class ProgressBarWithSpinner(ILogger<ProgressBarWithSpinner>? logger = de
             }
 
             _logger.LogTrace("Finished progress bar");
-            await spinnerTask;
+            await spinnerTask; 
         }
         catch (OperationCanceledException canceledException)
         {
-            _logger.LogError(canceledException, "Operation cancelled");
-            throw;
+            _logger.LogInformation(canceledException, $"{nameof(ProgressBarWithSpinner)} operation cancelled");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception inside Progress Bar With Spinner");
+            _logger.LogError(ex, $"{nameof(ProgressBarWithSpinner)} unhandled exception");
             throw;
         }
     }

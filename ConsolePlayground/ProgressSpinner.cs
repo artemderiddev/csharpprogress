@@ -32,12 +32,11 @@ public class ProgressSpinner(TimeSpan? updateTimeSpan = default)
         }
         catch (OperationCanceledException canceledException)
         {
-            _logger.LogError(canceledException, "Operation cancelled");
-            throw;
+            _logger.LogInformation(canceledException, $"{nameof(ProgressSpinner)} operation cancelled");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception inside ProgressSpinner");
+            _logger.LogError(ex, $"{nameof(ProgressSpinner)} unhandled exception");
             throw;
         }
     }

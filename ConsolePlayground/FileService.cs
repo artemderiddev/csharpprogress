@@ -3,21 +3,22 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ConsolePlayground;
 
-public class FileService(ILogger<FileService>? logger = default)
+public class FileService()
 {
-    private readonly ILogger<FileService> _logger = logger ?? new NullLogger<FileService>();
+    private readonly ILogger<FileService> _logger = LoggerServiceLocator.CreateLogger<FileService>() ?? new NullLogger<FileService>();
     
     private const string Alphabet = "abcdefghigklmnopqrstuvwxyz";
+    private const int DEFAULT_BUFFER_SIZE_BYTES = 4096; // a lot of file systems have this block as a minimal size block
     
     // Mark variable volatile to ensure no compiler optimization and warnings about using it in separate task.
     // Even if dotnet will try to sync memory between task and try to get us latest version of the value this still does not guarantee we will have the latest value 
     // If we want to make sure we need to use some locking mechanism, but since this is read only variable for another task and only for reporting with a lot of changes
     // It will be just more optimal to ignore some differences for better performance.
-    private volatile int _progressStatus; 
+    private volatile int _progressStatus;
 
     public async Task GenerateTextFile(CancellationToken token, IProgress<int> progress, string path, int lengthMb)
     {
-        await GenerateTextFile(token, progress, path, lengthMb, 100);
+        await GenerateTextFile(token, progress, path, lengthMb, DEFAULT_BUFFER_SIZE_BYTES);
     }
 
     public async Task GenerateTextFile(CancellationToken token, IProgress<int> progress, string path, int lengthMb, int bufferSize)
@@ -35,7 +36,7 @@ public class FileService(ILogger<FileService>? logger = default)
 
             for (var i = 0; i < totalOperations; i++)
             {
-                FillRandomTextToBuffer(buffer); // AsSpan() is not necessary since span has implicit conversion operator
+                FillRandomTextToBuffer(buffer); // AsSpan() is not necessary since now span has implicit conversion operator
                 await writer.WriteAsync(buffer, token);
                 _progressStatus = SmoothProgressPercentCalculation(i, totalOperations);
             }
@@ -44,12 +45,12 @@ public class FileService(ILogger<FileService>? logger = default)
         }
         catch (OperationCanceledException)
         {
-            _logger.LogWarning("File generation was cancelled.");
-            File.Delete(path);
+            _logger.LogError("File generation was cancelled.");
             throw;
         }
         finally
         {
+            File.Delete(path);
             try
             {
                 await progressTaskCts.CancelAsync();
@@ -76,7 +77,6 @@ public class FileService(ILogger<FileService>? logger = default)
                 
             progressStatus = newProgress;
             progress.Report(progressStatus);
-            
         }
     }
 
