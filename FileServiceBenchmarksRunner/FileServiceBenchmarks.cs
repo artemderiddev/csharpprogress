@@ -3,6 +3,7 @@ using ConsolePlayground;
 
 namespace FileServiceBenchmarksRunner;
 
+[MemoryDiagnoser(displayGenColumns: true)]
 public class FileServiceBenchmarks
 {
     private readonly FileService _fileService = new FileService();
@@ -13,7 +14,7 @@ public class FileServiceBenchmarks
     
     [Params(100, 256, 1000)] public int SizeInMb;
 
-    [Params(100, 256, 1024)] public int BufferSize;
+    [Params(100, 256, 1024, 4096)] public int BufferSize;
 
     [GlobalSetup]
     public void Setup()

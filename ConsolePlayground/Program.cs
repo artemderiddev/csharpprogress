@@ -21,8 +21,7 @@ try
     int currentPercentage = 0;
 
     progressTask = progressBarWithSpinner.RunAsync(new Progress<string>(DisplayProgressSpinner), () => currentPercentage, backgroundCts.Token);
-    
-    // tricky part here, text generating task spamming main thread with events with buffer size of 128, same with bigger 1024 but not that critical
+
     await fileService.GenerateTextFile(heavyTaskCts.Token, new Progress<int>(value => currentPercentage = value), path, sizeInMb); 
     
     appStatus = "Success";
@@ -35,14 +34,15 @@ finally
 {
     backgroundCts.Cancel();
 
-    await keyboardListenerTask;
-    await progressTask;
+    await Task.WhenAll(keyboardListenerTask, progressTask);
 
     Console.WriteLine(appStatus);
 
     File.Delete(path);
     Console.WriteLine("File deleted");
 }
+
+Console.ReadLine();
 
 return;
 

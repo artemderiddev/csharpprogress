@@ -3,7 +3,11 @@ using FileServiceBenchmarksRunner;
 
 BenchmarkRunner.Run<FileServiceBenchmarks>();
 
-/* 2024-08-14 results
+Console.ReadKey();
+
+/* 
+
+2024-08-14 results
 | Method               | SizeInMb | BufferSize | Mean       | Error    | StdDev    |
 |--------------------- |--------- |----------- |-----------:|---------:|----------:|
 | RunWithCurrentParams | 100      | 100        |   359.3 ms |  2.41 ms |   1.88 ms |
@@ -15,4 +19,15 @@ BenchmarkRunner.Run<FileServiceBenchmarks>();
 | RunWithCurrentParams | 1000     | 100        | 3,654.3 ms | 71.32 ms |  92.73 ms |
 | RunWithCurrentParams | 1000     | 256        | 3,572.2 ms | 71.18 ms | 126.52 ms |
 | RunWithCurrentParams | 1000     | 1024       | 3,471.9 ms | 65.56 ms |  94.03 ms |
-*/
+
+2024-09-18 additional results for 4096 buffer size
+
+| Method               | SizeInMb | BufferSize | Mean       | Error    | StdDev   |
+|--------------------- |--------- |----------- |-----------:|---------:|---------:|
+| RunWithCurrentParams | 100      | 4096       |   368.4 ms |  7.03 ms | 11.56 ms |
+| RunWithCurrentParams | 256      | 4096       |   938.1 ms | 18.55 ms | 42.24 ms |
+| RunWithCurrentParams | 1000     | 4096       | 3,788.5 ms | 74.09 ms | 76.09 ms |
+
+ So 1024 is actually the best buffer size
+ 
+ */

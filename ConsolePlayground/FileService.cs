@@ -8,7 +8,7 @@ public class FileService()
     private readonly ILogger<FileService> _logger = LoggerServiceLocator.CreateLogger<FileService>() ?? new NullLogger<FileService>();
     
     private const string Alphabet = "abcdefghigklmnopqrstuvwxyz";
-    private const int DEFAULT_BUFFER_SIZE_BYTES = 4096; // a lot of file systems have this block as a minimal size block
+    private const int DEFAULT_BUFFER_SIZE_BYTES = 1024; // best size found after benchmarking
     
     // Mark variable volatile to ensure no compiler optimization and warnings about using it in separate task.
     // Even if dotnet will try to sync memory between task and try to get us latest version of the value this still does not guarantee we will have the latest value 
